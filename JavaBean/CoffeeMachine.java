@@ -73,7 +73,7 @@ class CoffeeMachine {
         System.out.println("Welcome to JavaBean: The Object-Oriented Coffee Machine!");
         System.out.println("(Type 'report' to see the supplies, or 'off' to turn the machine off.)");
         while (isOn) {
-            System.out.print("\nWhat would you like? (espresso/americano/latte/cappuccino) >> ");
+            System.out.print("\nWhat would you like? (" + String.join("/", drinks.keySet()) + ") >> ");
             if (!scanner.hasNextLine()) {
                 break;
             }
