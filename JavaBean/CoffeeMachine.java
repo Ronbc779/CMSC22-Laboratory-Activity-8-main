@@ -83,13 +83,14 @@ class CoffeeMachine {
     }
 
     private void handleCommand(String choice) {
+        Drink drink = drinks.get(choice);
         if (choice.equals("off")) {
             isOn = false;
             System.out.println("Turning off. Goodbye!");
         } else if (choice.equals("report")) {
             printReport();
-        } else if (choice.equals("espresso") || choice.equals("americano") || choice.equals("latte") || choice.equals("cappuccino")) {
-            makeDrink(choice);
+        } else if (drink != null) {
+            makeDrink(drink);
         } else {
             System.out.println("Sorry, we don't have '" + choice + "'.");
         }
