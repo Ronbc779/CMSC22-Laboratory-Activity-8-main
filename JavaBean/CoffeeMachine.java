@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.LinkedHashMap;
 
 // takes orders, keeps track of supplies and earnings, and tells the staff when supplies run low
 //Design Notes: drinks, sizes and extras are enums
@@ -16,6 +17,10 @@ class CoffeeMachine {
     private SmsSender sms;
     private boolean isOn = true;
     private Map<String, PaymentMethod> paymentMethods = new HashMap<>();
+    //keeps the order we added the items
+    private Map<String, Drink> drinks = new LinkedHashMap<>();
+    private Map<String, Size> sizes = new LinkedHashMap<>();
+    private Map<String, Extra> extras = new LinkedHashMap<>();
 
     // water and milk are in ml, coffee is in grams
     private int water = 500;
@@ -28,6 +33,40 @@ class CoffeeMachine {
         this.sms = sms;
         paymentMethods.put("coins", new CoinPayment(scanner));
         paymentMethods.put("gcash", new GCashPayment(scanner));
+        setUpMenu();
+    }
+
+        // all drinks, sizes and extras are listed here. To add one, add one more line.
+    private void setUpMenu() {
+        Drink[] drinkList = {
+            new Drink("espresso", 90, 60, 0, 18),
+            new Drink("americano", 100, 200, 0, 18),
+            new Drink("latte", 130, 60, 150, 18),
+            new Drink("cappuccino", 150, 60, 100, 18)
+        };
+        for (Drink drink : drinkList) {
+            drinks.put(drink.getName(), drink);
+        }
+
+        // name, price change, water/milk %, coffee %
+        Size[] sizeList = {
+            new Size("small", -10, 75, 100),
+            new Size("regular", 0, 100, 100),
+            new Size("large", 20, 150, 150)
+        };
+        for (Size size : sizeList) {
+            sizes.put(size.getName(), size);
+        }
+
+        // name, price, water, coffee
+        Extra[] extraList = {
+            new Extra("extra shot", 20, 60, 18),
+            new Extra("syrup", 15, 0, 0),
+            new Extra("whipped cream", 15, 0, 0)
+        };
+        for (Extra extra : extraList) {
+            extras.put(extra.getName(), extra);
+        }
     }
 
     public void run() {
