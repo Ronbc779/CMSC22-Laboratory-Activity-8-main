@@ -110,81 +110,74 @@ class CoffeeMachine {
         return null;
     }
 
-    private void makeDrink(String drink) {
-        int[] recipe = getRecipe(drink);
-        int cost = recipe[0];
-        int waterNeeded = recipe[1];
-        int milkNeeded = recipe[2];
-        int coffeeNeeded = recipe[3];
-
-        System.out.print("What size? (small/regular/large) >> ");
-        String size = scanner.nextLine().trim().toLowerCase();
-
-        // the recipe above is for a regular cup
-        if (size.equals("small")) {
-            cost = cost - 10;
-            waterNeeded = waterNeeded * 3 / 4;
-            milkNeeded = milkNeeded * 3 / 4;
-        } else if (size.equals("large")) {
-            cost = cost + 20;
-            waterNeeded = waterNeeded * 3 / 2;
-            milkNeeded = milkNeeded * 3 / 2;
-            coffeeNeeded = coffeeNeeded * 3 / 2;
-        } else if (!size.equals("regular")) {
-            System.out.println("Sorry, we don't have a '" + size + "' cup.");
+    private void makeDrink(Drink drink) {
+        Size size = askSize();
+        if (size == null) {
             return;
         }
+        Order order = new Order(drink, size);
+        askExtras(order);
 
-        String order = size + " " + drink;
+        System.out.println("A " + order.getDescription() + " costs Php " + order.getCost() + ".");
+        if (!hasEnoughResources(order)) {
+            return;
+        }
+        if (!takePayment(order)) {
+            return;
+        }
+        serve(order);
+    }
 
+    private Size askSize() {
+        String text = ask("What size? (" + String.join("/", sizes.keySet()) + ") >> ");
+        Size size = sizes.get(text);
+        if (size == null) {
+            System.out.println("Sorry, we don't have a '" + text + "' cup.");
+        }
+        return size;
+    }
+
+    private void askExtras(Order order) {
         while (true) {
-            System.out.print("Add an extra? (extra shot/syrup/whipped cream/done) >> ");
-            String extra = scanner.nextLine().trim().toLowerCase();
-            if (extra.equals("done")) {
+            String text = ask("Add an extra? (" + String.join("/", extras.keySet()) + "/done) >> ");
+            if (text.equals("done")) {
                 break;
-            } else if (extra.equals("extra shot")) {
-                cost = cost + 20;
-                waterNeeded = waterNeeded + 60;
-                coffeeNeeded = coffeeNeeded + 18;
-                order = order + " + extra shot";
-            } else if (extra.equals("syrup")) {
-                cost = cost + 15;
-                order = order + " + syrup";
-            } else if (extra.equals("whipped cream")) {
-                cost = cost + 15;
-                order = order + " + whipped cream";
+            }
+            Extra extra = extras.get(text);
+            if (extra == null) {
+                System.out.println("Sorry, we don't have '" + text + "'.");
             } else {
-                System.out.println("Sorry, we don't have '" + extra + "'.");
+                order.addExtra(extra);
             }
         }
+    }
 
-        System.out.println("A " + order + " costs Php " + cost + ".");
-        if (!hasEnoughResources(waterNeeded, milkNeeded, coffeeNeeded)) {
-            return;
-        }
-
-        System.out.print("Pay with coins or GCash? (coins/gcash) >> ");
-        String method = scanner.nextLine().trim().toLowerCase();
+    private boolean takePayment(Order order) {
+        String method = ask("Pay with coins or GCash? (coins/gcash) >> ");
         PaymentMethod payment = paymentMethods.get(method);
         if (payment == null) {
             System.out.println("Sorry, we don't accept '" + method + "'.");
-            return;
+            return false;
         }
+        int cost = order.getCost();
         int paid = payment.pay(cost);
 
         if (paid < cost) {
             System.out.println("Sorry, that's not enough money. Money refunded.");
-            return;
+            return false;
         }
         if (paid > cost) {
             System.out.println("Here is Php " + (paid - cost) + " in change.");
         }
         profit += cost;
+        return true;
+    }
 
-        water -= waterNeeded;
-        milk -= milkNeeded;
-        coffee -= coffeeNeeded;
-        System.out.println("Here is your " + order + ". Enjoy!");
+    private void serve(Order order) {
+        water -= order.getWater();
+        milk -= order.getMilk();
+        coffee -= order.getCoffee();
+        System.out.println("Here is your " + order.getDescription() + ". Enjoy!");
         checkLowSupplies();
     }
 
