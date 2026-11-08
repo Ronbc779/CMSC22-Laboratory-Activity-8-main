@@ -1,7 +1,7 @@
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.LinkedHashMap;
 
 // takes orders, keeps track of supplies and earnings, and tells the staff when supplies run low
 //Design Notes: drinks, sizes and extras are enums
@@ -181,24 +181,21 @@ class CoffeeMachine {
         checkLowSupplies();
     }
 
-    private boolean hasEnoughResources(int waterNeeded, int milkNeeded, int coffeeNeeded) {
-        boolean enough = true;
-        if (water < waterNeeded) {
-            System.out.println("Sorry, there is not enough water.");
-            sms.send("0917-555-0100", "Coffee machine is out of water!");
-            enough = false;
+    private boolean hasEnoughResources(Order order) {
+        boolean enoughWater = hasEnough("water", water, order.getWater());
+        boolean enoughMilk = hasEnough("milk", milk, order.getMilk());
+        boolean enoughCoffee = hasEnough("coffee", coffee, order.getCoffee());
+        return enoughWater && enoughMilk && enoughCoffee;
+    }
+
+    // tells the customer and the staff when one supply is not enough
+    private boolean hasEnough(String supply, int available, int needed) {
+        if (available >= needed) {
+            return true;
         }
-        if (milk < milkNeeded) {
-            System.out.println("Sorry, there is not enough milk.");
-            sms.send("0917-555-0100", "Coffee machine is out of milk!");
-            enough = false;
-        }
-        if (coffee < coffeeNeeded) {
-            System.out.println("Sorry, there is not enough coffee.");
-            sms.send("0917-555-0100", "Coffee machine is out of coffee!");
-            enough = false;
-        }
-        return enough;
+        System.out.println("Sorry, there is not enough " + supply + ".");
+        sms.send(STAFF_NUMBER, "Coffee machine is out of " + supply + "!");
+        return false;
     }
 
     private void checkLowSupplies() {
